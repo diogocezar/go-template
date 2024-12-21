@@ -67,6 +67,6 @@ func Publish(queue string, body string, p *Producer) error {
 		log.Fatalf("Error trying to publish message: %v", err)
 	}
 
-	log.Println("Message published")
+	log.Printf("Message published: %s", body)
 	return nil
 }
