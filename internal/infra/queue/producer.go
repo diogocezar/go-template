@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"go-template/internal/config"
 	"log"
+	"sync"
 
 	"github.com/rabbitmq/amqp091-go"
 )
 
 type Producer struct {
-	Queue   amqp091.Queue
-	Channel *amqp091.Channel
+	Connection *amqp091.Connection
+	Channel    *amqp091.Channel
+	mutex      sync.Mutex
 }
 
-func MakeProducer(envs *config.Envs, queueName string, body string) *Producer {
-
+func MakeProducer(envs *config.Envs) (*Producer, error) {
 	USER := envs.QUEUE_USER
 	PASSWORD := envs.QUEUE_PASSWORD
 	HOST := envs.QUEUE_HOST
@@ -24,41 +25,38 @@ func MakeProducer(envs *config.Envs, queueName string, body string) *Producer {
 	if err != nil {
 		log.Fatalf("Error trying to connect on Queue: %v", err)
 	}
-	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Fatalf("Error trying to open channel: %v", err)
-	}
-	defer ch.Close()
-
-	queue, err := ch.QueueDeclare(
-		queueName, // name of queue
-		true,      // durable
-		false,     // auto delete
-		false,     // exclusive
-		false,     // no wait
-		nil,       // extra args
-	)
-
-	if err != nil {
-		log.Fatalf("Error trying to declarate Queue: %v", err)
+		conn.Close()
+		return nil, err
 	}
 
 	return &Producer{
-		Queue:   queue,
-		Channel: ch,
+		Connection: conn,
+		Channel:    ch,
+	}, nil
+}
+
+func CloseProducer(p *Producer) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	if p.Channel != nil {
+		p.Channel.Close()
+	}
+	if p.Connection != nil {
+		p.Connection.Close()
 	}
 }
 
-func (p *Producer) Publish(body string, exchange string) {
-	ch := p.Channel
+func Publish(queue string, body string, p *Producer) error {
 
-	err := ch.Publish(
-		exchange,     // exchange
-		p.Queue.Name, // routing key
-		false,        // obrigatório
-		false,        // imediato
+	err := p.Channel.Publish(
+		"",
+		queue,
+		false,
+		false,
 		amqp091.Publishing{
 			ContentType: "text/plain",
 			Body:        []byte(body),
@@ -69,5 +67,6 @@ func (p *Producer) Publish(body string, exchange string) {
 		log.Fatalf("Error trying to publish message: %v", err)
 	}
 
-	log.Printf("Message sent: %s", body)
+	log.Println("Message published")
+	return nil
 }

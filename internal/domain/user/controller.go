@@ -1,6 +1,8 @@
 package user
 
 import (
+	"go-template/internal/infra/queue"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,18 +23,25 @@ type FilterUserDTO struct {
 }
 
 type Controller struct {
+	producer   *queue.Producer
 	repository *Repository
-	queue      *Queue
 }
 
-func MakeController(repository *Repository) *Controller {
+func MakeController(repository *Repository, producer *queue.Producer) *Controller {
 	return &Controller{
 		repository: repository,
+		producer:   producer,
 	}
 }
 
-func (c *Controller) SendMessage(ctx *fiber.Ctx) {
-	c.queue.producer.Publish("users", "foo")
+func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
+	err := queue.Publish("users", "Hello World", c.producer)
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": "error trying to send message"})
+	}
+	return nil
 }
 
 func (c *Controller) Create(ctx *fiber.Ctx) error {
