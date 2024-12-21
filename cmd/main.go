@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-template/internal/config"
+	"go-template/internal/domain/user"
 	"go-template/internal/infra/database"
 	"go-template/internal/infra/http"
 	"go-template/internal/infra/queue"
@@ -19,8 +20,10 @@ func main() {
 		log.Fatalf("Error trying to connect on Queue: %v", err)
 	}
 	defer queue.CloseProducer(producer)
+	handler := user.QueueHandler
+	go func() {
+		queue.MakeConsumer(envs, "users", handler)
+	}()
 	app := http.MakeServer(db, producer)
-	//handler := user.QueueHandler
-	//queue.MakeConsumer(envs, "users", handler)
 	app.Listen(fmt.Sprintf(":%s", envs.PORT))
 }
