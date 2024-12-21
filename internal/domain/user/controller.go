@@ -1,25 +1,23 @@
 package user
 
 import (
-	"errors"
-	"regexp"
-
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UpdateUserDTO struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID    string `json:"id" validate:"required"`
+	Name  string `json:"name" validate:"required,min=3,max=100"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type CreateUserDTO struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	Name  string `json:"name" validate:"required,min=3,max=100"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type FilterUserDTO struct {
-	ID string `json:"id"`
+	ID string `json:"id" validate:"required"`
 }
 
 type Controller struct {
@@ -41,27 +39,10 @@ func (c *Controller) Create(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": "bad request"})
 	}
 
-	// TODO: move this validation to a separate structure
-	if err := func() error {
-		if dto.Name == "" {
-			return errors.New("missing name")
-		}
+	validate := validator.New()
 
-		if len(dto.Name) > 100 {
-			return errors.New("invalid name")
-		}
-
-		if dto.Email == "" {
-			return errors.New("missing email")
-		}
-
-		emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-		re := regexp.MustCompile(emailRegex)
-		if !re.MatchString(dto.Email) {
-			return errors.New("invalid email")
-		}
-		return nil
-	}(); err != nil {
+	err := validate.Struct(dto)
+	if err != nil {
 		return ctx.
 			Status(fiber.StatusUnprocessableEntity).
 			JSON(fiber.Map{"error": err.Error()})
@@ -100,6 +81,15 @@ func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 		ID: ctx.Params("id"),
 	}
 
+	validate := validator.New()
+
+	err := validate.Struct(dto)
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": err.Error()})
+	}
+
 	user, err := c.repository.FindOne(dto.ID)
 
 	if err != nil {
@@ -122,6 +112,15 @@ func (c *Controller) Update(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": "bad request"})
 	}
 
+	validate := validator.New()
+
+	err := validate.Struct(dto)
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": err.Error()})
+	}
+
 	user, err := c.repository.Update(dto.ID, dto.Name, dto.Email)
 
 	if err != nil {
@@ -142,6 +141,15 @@ func (c *Controller) Delete(ctx *fiber.Ctx) error {
 		return ctx.
 			Status(fiber.StatusBadRequest).
 			JSON(fiber.Map{"error": "bad request"})
+	}
+
+	validate := validator.New()
+
+	err := validate.Struct(dto)
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": err.Error()})
 	}
 
 	err := c.repository.Delete(dto.ID)
