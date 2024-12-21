@@ -7,9 +7,19 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserDTO struct {
+type UpdateUserDTO struct {
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+type CreateUserDTO struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type FilterUserDTO struct {
+	ID string `json:"id"`
 }
 
 type Controller struct {
@@ -23,7 +33,7 @@ func MakeController(repository *Repository) *Controller {
 }
 
 func (c *Controller) Create(ctx *fiber.Ctx) error {
-	dto := new(UserDTO)
+	dto := new(CreateUserDTO)
 
 	if err := ctx.BodyParser(dto); err != nil {
 		return ctx.
@@ -71,17 +81,77 @@ func (c *Controller) Create(ctx *fiber.Ctx) error {
 }
 
 func (c *Controller) FindAll(ctx *fiber.Ctx) error {
-	panic("unimplemented")
+
+	users, err := c.repository.FindAll()
+
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.
+		Status(fiber.StatusOK).
+		JSON(users)
 }
 
 func (c *Controller) FindOne(ctx *fiber.Ctx) error {
-	panic("unimplemented")
+	dto := FilterUserDTO{
+		ID: ctx.Params("id"),
+	}
+
+	user, err := c.repository.FindOne(dto.ID)
+
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.
+		Status(fiber.StatusOK).
+		JSON(user)
 }
 
 func (c *Controller) Update(ctx *fiber.Ctx) error {
-	panic("unimplemented")
+	dto := new(UpdateUserDTO)
+
+	if err := ctx.BodyParser(dto); err != nil {
+		return ctx.
+			Status(fiber.StatusBadRequest).
+			JSON(fiber.Map{"error": "bad request"})
+	}
+
+	user, err := c.repository.Update(dto.ID, dto.Name, dto.Email)
+
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.
+		Status(fiber.StatusOK).
+		JSON(user)
 }
 
 func (c *Controller) Delete(ctx *fiber.Ctx) error {
-	panic("unimplemented")
+	dto := new(FilterUserDTO)
+
+	if err := ctx.BodyParser(dto); err != nil {
+		return ctx.
+			Status(fiber.StatusBadRequest).
+			JSON(fiber.Map{"error": "bad request"})
+	}
+
+	user, err := c.repository.Delete(dto.ID)
+
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.
+		Status(fiber.StatusOK)
 }

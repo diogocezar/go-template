@@ -10,6 +10,12 @@ type Repository struct {
 	database *database.Database
 }
 
+func MakeReposirory(database *database.Database) *Repository {
+	return &Repository{
+		database: database,
+	}
+}
+
 func (r *Repository) Create(name string, email string) (*User, error) {
 	user := User{
 		ID:    uuid.New().String(),
@@ -24,7 +30,7 @@ func (r *Repository) Create(name string, email string) (*User, error) {
 	return &user, nil
 }
 
-func (r *Repository) FindAll(name string, email string) ([]User, error) {
+func (r *Repository) FindAll() ([]User, error) {
 	var users []User
 
 	rows, err := r.database.Client.Query("SELECT id, name, email FROM user")

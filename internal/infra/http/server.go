@@ -2,6 +2,7 @@ package http
 
 import (
 	"go-template/internal/infra/database"
+	"go-template/internal/infra/domain/user"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,9 +16,9 @@ func MakeServer(database *database.Database) (app *fiber.App) {
 		return ctx.Next()
 	})
 
-	// peopleReposirory := people.MakeReposirory(database)
-	// peopleController := people.MakeController(peopleReposirory)
-	// people.MakeRoutes(app, peopleController)
+	userReposirory := user.MakeReposirory(database)
+	userController := user.MakeController(userReposirory)
+	user.MakeRoutes(app, userController)
 
 	return app
 }
