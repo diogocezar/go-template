@@ -144,7 +144,7 @@ func (c *Controller) Delete(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": "bad request"})
 	}
 
-	user, err := c.repository.Delete(dto.ID)
+	err := c.repository.Delete(dto.ID)
 
 	if err != nil {
 		return ctx.
@@ -153,5 +153,6 @@ func (c *Controller) Delete(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.
-		Status(fiber.StatusOK)
+		Status(fiber.StatusOK).
+		Send([]byte{})
 }
