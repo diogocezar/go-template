@@ -1,19 +1,15 @@
 package user
 
 import (
+	"encoding/json"
 	"go-template/internal/infra/queue"
+	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
-type UpdateUserDTO struct {
-	ID    string `json:"id" validate:"required"`
-	Name  string `json:"name" validate:"required,min=3,max=100"`
-	Email string `json:"email" validate:"required,email"`
-}
-
-type CreateUserDTO struct {
+type UserDTO struct {
 	Name  string `json:"name" validate:"required,min=3,max=100"`
 	Email string `json:"email" validate:"required,email"`
 }
@@ -34,20 +30,11 @@ func MakeController(repository *Repository, producer *queue.Producer) *Controlle
 	}
 }
 
-func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
-	err := queue.Publish("users", "Hello World", c.producer)
-	if err != nil {
-		return ctx.
-			Status(fiber.StatusUnprocessableEntity).
-			JSON(fiber.Map{"error": "error trying to send message"})
-	}
-	return nil
-}
-
 func (c *Controller) Create(ctx *fiber.Ctx) error {
-	dto := new(CreateUserDTO)
+	dto := new(UserDTO)
 
 	if err := ctx.BodyParser(dto); err != nil {
+		log.Println(err)
 		return ctx.
 			Status(fiber.StatusBadRequest).
 			JSON(fiber.Map{"error": "bad request"})
@@ -68,6 +55,20 @@ func (c *Controller) Create(ctx *fiber.Ctx) error {
 		return ctx.
 			Status(fiber.StatusUnprocessableEntity).
 			JSON(fiber.Map{"error": err.Error()})
+	}
+
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusInternalServerError).
+			JSON(fiber.Map{"error": "error marshalling user"})
+	}
+
+	err = queue.Publish("users", string(userJSON), c.producer)
+	if err != nil {
+		return ctx.
+			Status(fiber.StatusUnprocessableEntity).
+			JSON(fiber.Map{"error": "error trying to send message"})
 	}
 
 	return ctx.
@@ -118,7 +119,10 @@ func (c *Controller) FindOne(ctx *fiber.Ctx) error {
 }
 
 func (c *Controller) Update(ctx *fiber.Ctx) error {
-	dto := new(UpdateUserDTO)
+	dto := new(UserDTO)
+	filter := FilterUserDTO{
+		ID: ctx.Params("id"),
+	}
 
 	if err := ctx.BodyParser(dto); err != nil {
 		return ctx.
@@ -135,7 +139,7 @@ func (c *Controller) Update(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": err.Error()})
 	}
 
-	user, err := c.repository.Update(dto.ID, dto.Name, dto.Email)
+	user, err := c.repository.Update(filter.ID, dto.Name, dto.Email)
 
 	if err != nil {
 		return ctx.
@@ -149,24 +153,11 @@ func (c *Controller) Update(ctx *fiber.Ctx) error {
 }
 
 func (c *Controller) Delete(ctx *fiber.Ctx) error {
-	dto := new(FilterUserDTO)
-
-	if err := ctx.BodyParser(dto); err != nil {
-		return ctx.
-			Status(fiber.StatusBadRequest).
-			JSON(fiber.Map{"error": "bad request"})
+	dto := FilterUserDTO{
+		ID: ctx.Params("id"),
 	}
 
-	validate := validator.New()
-
-	err := validate.Struct(dto)
-	if err != nil {
-		return ctx.
-			Status(fiber.StatusUnprocessableEntity).
-			JSON(fiber.Map{"error": err.Error()})
-	}
-
-	err = c.repository.Delete(dto.ID)
+	err := c.repository.Delete(dto.ID)
 
 	if err != nil {
 		return ctx.

@@ -7,5 +7,4 @@ INSERT INTO user (id, name, email) VALUES
     ('550e8400-e29b-41d4-a716-446655440005', 'Fernando Alves', 'fernando.alves@example.com'),
     ('550e8400-e29b-41d4-a716-446655440006', 'Gabriela Souza', 'gabriela.souza@example.com'),
     ('550e8400-e29b-41d4-a716-446655440007', 'Henrique Matos', 'henrique.matos@example.com'),
-    ('550e8400-e29b-41d4-a716-446655440008', 'Isabela Rocha', 'isabela.rocha@example.com'),
-    ('550e8400-e29b-41d4-a716-446655440009', 'João Oliveira', 'joao.oliveira@example.com');
+    ('550e8400-e29b-41d4-a716-446655440008', 'Isabela Rocha', 'isabela.rocha@example.com');
