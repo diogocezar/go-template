@@ -1,16 +1,17 @@
 services:
-  mysql_bp:
+  database:
     image: mysql:latest
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${BLUEPRINT_DB_DATABASE}
-      MYSQL_USER: ${BLUEPRINT_DB_USERNAME}
-      MYSQL_PASSWORD: ${BLUEPRINT_DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${BLUEPRINT_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
     ports:
-      - "${BLUEPRINT_DB_PORT}:3306"
+      - "${DATABASE_PORT}:3306"
     volumes:
-      - mysql_volume_bp:/var/lib/mysql
+      - database_volume:/var/lib/mysql
+      - ./scripts/mysql/create.sql:/docker-entrypoint-initdb.d/create.sql
 
 volumes:
-  mysql_volume_bp:
+  database_volume:
