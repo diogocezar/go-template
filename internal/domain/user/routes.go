@@ -8,4 +8,5 @@ func MakeRoutes(app *fiber.App, controller *Controller) {
 	app.Get("/user/:id", controller.FindOne)
 	app.Put("/user", controller.Update)
 	app.Delete("/user/:id", controller.Delete)
+	app.Post("/user/send-message", controller.SendMessage)
 }

@@ -22,12 +22,17 @@ type FilterUserDTO struct {
 
 type Controller struct {
 	repository *Repository
+	queue      *Queue
 }
 
 func MakeController(repository *Repository) *Controller {
 	return &Controller{
 		repository: repository,
 	}
+}
+
+func (c *Controller) SendMessage(ctx *fiber.Ctx) {
+	c.queue.producer.Publish("users", "foo")
 }
 
 func (c *Controller) Create(ctx *fiber.Ctx) error {
@@ -152,7 +157,7 @@ func (c *Controller) Delete(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": err.Error()})
 	}
 
-	err := c.repository.Delete(dto.ID)
+	err = c.repository.Delete(dto.ID)
 
 	if err != nil {
 		return ctx.

@@ -13,6 +13,27 @@ services:
       - database_volume:/var/lib/mysql
       - ./scripts/mysql/create.sql:/docker-entrypoint-initdb.d/create.sql
       - ./scripts/mysql/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-container
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${QUEUE_USER}
+      RABBITMQ_DEFAULT_PASS: ${QUEUE_PASSWORD}
+    ports:
+      - "5672:5672" # Porta para conexão AMQP
+      - "15672:15672" # Porta para interface de gerenciamento
+    networks:
+      - queue_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   database_volume:
+
+networks:
+  queue_network:
+    driver: bridge

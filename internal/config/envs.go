@@ -14,6 +14,10 @@ type Envs struct {
 	DATABASE_PORT     string
 	DATABASE_USER     string
 	PORT              string
+	QUEUE_HOST        string
+	QUEUE_PORT        string
+	QUEUE_USER        string
+	QUEUE_PASSWORD    string
 }
 
 func MakeEnvs() *Envs {
@@ -28,5 +32,9 @@ func MakeEnvs() *Envs {
 		DATABASE_PORT:     envs.GetEnvOrDie("DATABASE_PORT"),
 		DATABASE_USER:     envs.GetEnvOrDie("DATABASE_USER"),
 		PORT:              envs.GetEnvOrDie("PORT"),
+		QUEUE_HOST:        envs.GetEnvOrDie("QUEUE_HOST"),
+		QUEUE_PORT:        envs.GetEnvOrDie("QUEUE_PORT"),
+		QUEUE_USER:        envs.GetEnvOrDie("QUEUE_USER"),
+		QUEUE_PASSWORD:    envs.GetEnvOrDie("QUEUE_PASSWORD"),
 	}
 }

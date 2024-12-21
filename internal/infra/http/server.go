@@ -1,8 +1,8 @@
 package http
 
 import (
+	"go-template/internal/domain/user"
 	"go-template/internal/infra/database"
-	"go-template/internal/infra/domain/user"
 
 	"github.com/gofiber/fiber/v2"
 )
