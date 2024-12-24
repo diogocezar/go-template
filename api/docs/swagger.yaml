@@ -1,0 +1,193 @@
+basePath: /
+definitions:
+  health.HealthCheckResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  user.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  user.UserDTO:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      password:
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: That is a template to create APIs in Go
+  title: Go Template API
+  version: 0.0.1
+paths:
+  /healthz:
+    get:
+      description: Check if application is alive
+      responses:
+        "200":
+          description: Application is alive
+          schema:
+            $ref: '#/definitions/health.HealthCheckResponse'
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Check if application is alive
+      tags:
+      - health-check
+  /healthz/ready:
+    get:
+      description: Check if application is ready
+      responses:
+        "200":
+          description: Application is ready
+          schema:
+            $ref: '#/definitions/health.HealthCheckResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/health.HealthCheckResponse'
+      summary: Check if application is ready
+      tags:
+      - health-check
+  /user:
+    get:
+      description: Retrieve all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/user.User'
+            type: array
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+      summary: Retrieve all users
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Create new user
+      parameters:
+      - description: User
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Create new user
+      tags:
+      - user
+  /user/{id}:
+    delete:
+      description: Delete a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: User removed
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+      summary: Delete a user
+      tags:
+      - user
+    get:
+      description: Retrieve a single user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User found
+          schema:
+            $ref: '#/definitions/user.User'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+      summary: Retrieve a single user
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User DTO
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.UserDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated
+          schema:
+            $ref: '#/definitions/user.User'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+      summary: Update an existing user
+      tags:
+      - user
+swagger: "2.0"

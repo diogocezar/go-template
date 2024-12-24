@@ -14,7 +14,7 @@ type Database struct {
 	Client *sql.DB
 }
 
-func MakeDatabase(envs *config.Envs) *Database {
+func New(envs *config.Envs) *Database {
 
 	USER := envs.DATABASE_USER
 	PASSWORD := envs.DATABASE_PASSWORD

@@ -3,12 +3,12 @@ package queue
 import (
 	"fmt"
 	"go-template/internal/config"
-	"log"
+	"go-template/pkg/logger"
 
 	"github.com/rabbitmq/amqp091-go"
 )
 
-func MakeConsumer(envs *config.Envs, queueName string, handler func([]byte) error) {
+func NewConsumer(envs *config.Envs, queueName string, handler func([]byte) error) {
 
 	USER := envs.QUEUE_USER
 	PASSWORD := envs.QUEUE_PASSWORD
@@ -17,13 +17,13 @@ func MakeConsumer(envs *config.Envs, queueName string, handler func([]byte) erro
 
 	conn, err := amqp091.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", USER, PASSWORD, HOST, PORT))
 	if err != nil {
-		log.Fatalf("Error trying to connect on Queue: %v", err)
+		logger.Error(fmt.Sprintf("Error trying to connect on Queue: %v", err))
 	}
 	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Fatalf("Error trying to open channel: %v", err)
+		logger.Error(fmt.Sprintf("Error trying to open channel: %v", err))
 	}
 	defer ch.Close()
 
@@ -37,7 +37,7 @@ func MakeConsumer(envs *config.Envs, queueName string, handler func([]byte) erro
 	)
 
 	if err != nil {
-		log.Fatalf("Error trying to declare queue : %v", err)
+		logger.Error(fmt.Sprintf("Error trying to declare queue: %v", err))
 	}
 
 	msgs, err := ch.Consume(
@@ -50,14 +50,14 @@ func MakeConsumer(envs *config.Envs, queueName string, handler func([]byte) erro
 		nil,        // extra args
 	)
 	if err != nil {
-		log.Fatalf("Error trying to register consumer: %v", err)
+		logger.Error(fmt.Sprintf("Error trying to register consumer: %v", err))
 	}
 
 	forever := make(chan bool)
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received message: %s", d.Body)
+			logger.Info(fmt.Sprintf("Received message: %s", d.Body))
 			handler(d.Body)
 		}
 	}()

@@ -1,7 +1,8 @@
 package envs
 
 import (
-	"log"
+	"fmt"
+	"go-template/pkg/logger"
 	"os"
 )
 
@@ -9,7 +10,7 @@ func GetEnvOrDie(env string) (val string) {
 	val = os.Getenv(env)
 
 	if val == "" {
-		log.Fatalf("missing environment variable %s", env)
+		logger.Error(fmt.Sprintf("missing environment variable %s", env))
 	}
 
 	return val

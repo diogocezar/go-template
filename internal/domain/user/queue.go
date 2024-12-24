@@ -1,11 +1,12 @@
 package user
 
 import (
-	"log"
+	"fmt"
+	"go-template/pkg/logger"
 )
 
-func QueueHandler(body []byte) error {
-	log.Printf("Processing message: %s", body)
+func NewQueueHandler(body []byte) error {
+	logger.Info(fmt.Sprintf("Processing message: %s", body))
 	// Implements here!
 	return nil
 }

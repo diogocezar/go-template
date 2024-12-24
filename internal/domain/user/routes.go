@@ -1,11 +1,15 @@
 package user
 
-import "github.com/gofiber/fiber/v2"
+import (
+	middleware "go-template/internal/infra/http/middlaware"
 
-func MakeRoutes(app *fiber.App, controller *Controller) {
-	app.Post("/user", controller.Create)
-	app.Get("/user", controller.FindAll)
-	app.Get("/user/:id", controller.FindOne)
-	app.Put("/user/:id", controller.Update)
-	app.Delete("/user/:id", controller.Delete)
+	"github.com/gofiber/fiber/v2"
+)
+
+func NewRoutes(app *fiber.App, userHandler *UserHandler) {
+	app.Post("/user", middleware.JWTProtected, userHandler.Create)
+	app.Get("/user", userHandler.FindAll)
+	app.Get("/user/:id", userHandler.FindOne)
+	app.Put("/user/:id", userHandler.Update)
+	app.Delete("/user/:id", userHandler.Delete)
 }

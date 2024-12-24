@@ -1,10 +1,21 @@
-### Create user
-POST http://localhost:8080/user HTTP/1.1
+### Auth
+POST http://localhost:8080/auth/login HTTP/1.1
 content-type: application/json
 
 {
+  "email": "john@doe.com",
+  "password": "123456"
+}
+
+### Create user
+POST http://localhost:8080/user HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2VtYWlsIjoiam9obkBkb2UuY29tIiwidXNlcl9pZCI6Ijk2NTUxZGFmLTM1ZjQtNGJiMC1iNDdkLTRlMzMwY2I5M2JlOCJ9.tAlaPku1syoLC_r_xgexsfvbsZbPiHXI-7FmwYYx-iA
+
+{
   "name": "John Doe",
-  "email": "john@doe.com"
+  "email": "john@doe.com",
+  "password": "123456"
 }
 
 ### Find all users

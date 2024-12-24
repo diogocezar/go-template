@@ -7,23 +7,34 @@ import (
 	"go-template/internal/infra/database"
 	"go-template/internal/infra/http"
 	"go-template/internal/infra/queue"
+	"go-template/pkg/logger"
 	"go-template/pkg/shutdown"
-	"log"
 )
 
 func main() {
+	logger.Info("Starting Application")
 	defer shutdown.Gracefully()
-	envs := config.MakeEnvs()
-	db := database.MakeDatabase(envs)
-	producer, err := queue.MakeProducer(envs)
+
+	logger.Info("Getting Envs")
+	envs := config.New()
+
+	logger.Info("Creating Database Connection")
+	db := database.New(envs)
+
+	logger.Info("Creating Producer to Queue")
+	producer, err := queue.NewProducer(envs)
 	if err != nil {
-		log.Fatalf("Error trying to connect on Queue: %v", err)
+		logger.Error(fmt.Sprintf("Error trying to connect on Queue: %v", err))
 	}
 	defer queue.CloseProducer(producer)
-	handler := user.QueueHandler
+
+	logger.Info("Creating Handler to Consume Queue")
+	queueHandler := user.NewQueueHandler
 	go func() {
-		queue.MakeConsumer(envs, "users", handler)
+		queue.NewConsumer(envs, "users", queueHandler)
 	}()
-	app := http.MakeServer(db, producer)
+
+	logger.Info("Creating HTTP Server")
+	app := http.New(db, producer)
 	app.Listen(fmt.Sprintf(":%s", envs.PORT))
 }

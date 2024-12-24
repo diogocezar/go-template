@@ -1,47 +1,54 @@
 package user
 
 import (
+	"fmt"
 	"go-template/internal/infra/database"
+	"go-template/pkg/logger"
+	"go-template/pkg/utils"
 
 	"github.com/google/uuid"
 )
 
-type Repository struct {
+type UserRepository struct {
 	database *database.Database
 }
 
-func MakeReposirory(database *database.Database) *Repository {
-	return &Repository{
+func NewRepository(database *database.Database) *UserRepository {
+	return &UserRepository{
 		database: database,
 	}
 }
 
-func (r *Repository) Create(name string, email string) (*User, error) {
+func (r *UserRepository) Create(name string, email string, password string) (*User, error) {
 	user := User{
-		ID:    uuid.New().String(),
-		Name:  name,
-		Email: email,
+		ID:        uuid.New().String(),
+		Name:      name,
+		Email:     email,
+		Passsword: password,
 	}
 
-	if _, err := r.database.Client.Exec("INSERT INTO user (id, name, email) VALUES (?, ?, ?)", user.ID, user.Name, user.Email); err != nil {
+	if _, err := r.database.Client.Exec("INSERT INTO user (id, name, email, password) VALUES (?, ?, ?, ?)", user.ID, user.Name, user.Email, utils.GeneratePassword(user.Passsword)); err != nil {
+		logger.Error(fmt.Sprintf("Error creating user: %v", err))
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func (r *Repository) FindAll() ([]User, error) {
+func (r *UserRepository) FindAll() ([]User, error) {
 	var users []User
 
-	rows, err := r.database.Client.Query("SELECT id, name, email FROM user")
+	rows, err := r.database.Client.Query("SELECT id, name, email, password FROM user")
 	if err != nil {
+		logger.Error(fmt.Sprintf("Error finding all users: %v", err))
 		return nil, err
 	}
 
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Name, &user.Email); err != nil {
+		if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Passsword); err != nil {
+			logger.Error(fmt.Sprintf("Error scanning user: %v", err))
 			return nil, err
 		}
 
@@ -51,17 +58,29 @@ func (r *Repository) FindAll() ([]User, error) {
 	return users, nil
 }
 
-func (r *Repository) FindOne(id string) (*User, error) {
+func (r *UserRepository) FindOne(id string) (*User, error) {
 	var user User
 
 	if err := r.database.Client.QueryRow("SELECT id, name, email FROM user WHERE id = ?", id).Scan(&user.ID, &user.Name, &user.Email); err != nil {
+		logger.Error(fmt.Sprintf("Error geting one user user: %v", err))
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func (r *Repository) Update(id string, name string, email string) (*User, error) {
+func (r *UserRepository) FindByEmail(id string) (*User, error) {
+	var user User
+
+	if err := r.database.Client.QueryRow("SELECT id, name, email, password FROM user WHERE email = ?", id).Scan(&user.ID, &user.Name, &user.Email, &user.Passsword); err != nil {
+		logger.Error(fmt.Sprintf("Error geting one user user: %v", err))
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) Update(id string, name string, email string) (*User, error) {
 	user := User{
 		ID:    id,
 		Name:  name,
@@ -69,14 +88,16 @@ func (r *Repository) Update(id string, name string, email string) (*User, error)
 	}
 
 	if _, err := r.database.Client.Exec("UPDATE user SET name = ?, email = ? WHERE id = ?", user.Name, user.Email, user.ID); err != nil {
+		logger.Error(fmt.Sprintf("Error updating user: %v", err))
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func (r *Repository) Delete(id string) error {
+func (r *UserRepository) Delete(id string) error {
 	if _, err := r.database.Client.Exec("DELETE FROM user WHERE id = ?", id); err != nil {
+		logger.Error(fmt.Sprintf("Error deleting user: %v", err))
 		return err
 	}
 	return nil

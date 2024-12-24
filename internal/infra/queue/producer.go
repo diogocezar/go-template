@@ -3,7 +3,7 @@ package queue
 import (
 	"fmt"
 	"go-template/internal/config"
-	"log"
+	"go-template/pkg/logger"
 	"sync"
 
 	"github.com/rabbitmq/amqp091-go"
@@ -15,7 +15,7 @@ type Producer struct {
 	mutex      sync.Mutex
 }
 
-func MakeProducer(envs *config.Envs) (*Producer, error) {
+func NewProducer(envs *config.Envs) (*Producer, error) {
 	USER := envs.QUEUE_USER
 	PASSWORD := envs.QUEUE_PASSWORD
 	HOST := envs.QUEUE_HOST
@@ -23,7 +23,7 @@ func MakeProducer(envs *config.Envs) (*Producer, error) {
 
 	conn, err := amqp091.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", USER, PASSWORD, HOST, PORT))
 	if err != nil {
-		log.Fatalf("Error trying to connect on Queue: %v", err)
+		logger.Error(fmt.Sprintf("Error trying to connect on Queue: %v", err))
 	}
 
 	ch, err := conn.Channel()
@@ -64,9 +64,9 @@ func Publish(queue string, body string, p *Producer) error {
 	)
 
 	if err != nil {
-		log.Fatalf("Error trying to publish message: %v", err)
+		logger.Error(fmt.Sprintf("Error trying to publish message: %v", err))
 	}
 
-	log.Printf("Message published: %s", body)
+	logger.Info(fmt.Sprintf("Message published: %s", body))
 	return nil
 }

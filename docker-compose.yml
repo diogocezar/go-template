@@ -1,4 +1,5 @@
 services:
+  
   database:
     image: mysql:latest
     restart: unless-stopped
@@ -11,8 +12,9 @@ services:
       - "${DATABASE_PORT}:3306"
     volumes:
       - database_volume:/var/lib/mysql
-      - ./scripts/mysql/create.sql:/docker-entrypoint-initdb.d/create.sql
-      - ./scripts/mysql/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+      - ./migration/create.sql:/docker-entrypoint-initdb.d/create.sql
+      - ./migration/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+  
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq-container
@@ -21,8 +23,8 @@ services:
       RABBITMQ_DEFAULT_USER: ${QUEUE_USER}
       RABBITMQ_DEFAULT_PASS: ${QUEUE_PASSWORD}
     ports:
-      - "5672:5672" # Porta para conexão AMQP
-      - "15672:15672" # Porta para interface de gerenciamento
+      - "5672:5672" # Port for AMQP connection
+      - "15672:15672" # Port for management interface
     networks:
       - queue_network
     healthcheck:

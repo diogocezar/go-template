@@ -1,8 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"go-template/pkg/envs"
-	"log"
+	"go-template/pkg/logger"
 
 	"github.com/joho/godotenv"
 )
@@ -18,11 +19,13 @@ type Envs struct {
 	QUEUE_PORT        string
 	QUEUE_USER        string
 	QUEUE_PASSWORD    string
+	JWT_SECRET        string
+	ENVIRONMENT       string
 }
 
-func MakeEnvs() *Envs {
+func New() *Envs {
 	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("error loading .env file: %v", err)
+		logger.Error(fmt.Sprintf("Error loading .env file: %v", err))
 	}
 
 	return &Envs{
@@ -36,5 +39,7 @@ func MakeEnvs() *Envs {
 		QUEUE_PORT:        envs.GetEnvOrDie("QUEUE_PORT"),
 		QUEUE_USER:        envs.GetEnvOrDie("QUEUE_USER"),
 		QUEUE_PASSWORD:    envs.GetEnvOrDie("QUEUE_PASSWORD"),
+		JWT_SECRET:        envs.GetEnvOrDie("JWT_SECRET"),
+		ENVIRONMENT:       envs.GetEnvOrDie("ENVIRONMENT"),
 	}
 }
